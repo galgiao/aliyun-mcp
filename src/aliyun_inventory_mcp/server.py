@@ -7,6 +7,7 @@ from alibabacloud_resourcecenter20221201 import models as rc_models
 from alibabacloud_resourcecenter20221201.client import Client as ResourceCenterClient
 from alibabacloud_tea_openapi import models as open_api_models
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 
 def _env_bool(name: str, default: bool = False) -> bool:
@@ -23,6 +24,27 @@ def _env_int(name: str, default: int) -> int:
     return int(value)
 
 
+def _env_list(name: str) -> list[str]:
+    value = os.getenv(name, "")
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _transport_security() -> TransportSecuritySettings | None:
+    if _env_bool("ALIYUN_MCP_DISABLE_DNS_REBINDING_PROTECTION", False):
+        return TransportSecuritySettings(enable_dns_rebinding_protection=False)
+
+    allowed_hosts = _env_list("ALIYUN_MCP_ALLOWED_HOSTS")
+    allowed_origins = _env_list("ALIYUN_MCP_ALLOWED_ORIGINS")
+    if not allowed_hosts and not allowed_origins:
+        return None
+
+    return TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=allowed_hosts,
+        allowed_origins=allowed_origins,
+    )
+
+
 mcp = FastMCP(
     "aliyun-inventory",
     host=os.getenv("ALIYUN_MCP_HOST", "0.0.0.0"),
@@ -31,6 +53,7 @@ mcp = FastMCP(
     stateless_http=_env_bool("ALIYUN_MCP_STATELESS", False),
     json_response=_env_bool("ALIYUN_MCP_JSON_RESPONSE", False),
     log_level=os.getenv("ALIYUN_MCP_LOG_LEVEL", "INFO"),  # type: ignore[arg-type]
+    transport_security=_transport_security(),
 )
 
 
