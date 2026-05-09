@@ -63,6 +63,8 @@ ALIYUN_MCP_TRANSPORT=streamable-http
 ALIYUN_MCP_STATELESS=false
 ALIYUN_MCP_JSON_RESPONSE=false
 ALIYUN_MCP_LOG_LEVEL=INFO
+ALIYUN_MCP_ALLOWED_HOSTS=172.31.35.149:8000,mcp.example.com
+ALIYUN_MCP_ALLOWED_ORIGINS=http://172.31.35.149:8000,https://mcp.example.com
 EOF
 
 sudo chmod 600 /etc/aliyun-inventory-mcp.env
@@ -135,6 +137,8 @@ https://mcp.example.com/mcp
 ```
 
 如果你的 MCP 客户端需要无状态 HTTP，可以把 `ALIYUN_MCP_STATELESS=true`。
+
+如果客户端报 `403 Forbidden`，通常是 HTTP `Origin` 不在允许列表中。把客户端访问的完整来源加入 `ALIYUN_MCP_ALLOWED_ORIGINS`，把 `Host` 加入 `ALIYUN_MCP_ALLOWED_HOSTS`，或者临时设置 `ALIYUN_MCP_DISABLE_DNS_REBINDING_PROTECTION=true` 排查。
 
 ## stdio 配置示例
 
