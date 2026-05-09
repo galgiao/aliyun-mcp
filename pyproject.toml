@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aliyun-inventory-mcp"
+version = "0.1.0"
+description = "MCP server for collecting Alibaba Cloud resources and resource relationships with AK/SK."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "mcp>=1.0.0",
+  "alibabacloud-resourcecenter20221201>=1.0.0",
+  "alibabacloud-tea-openapi>=0.3.8",
+  "alibabacloud-tea-util>=0.3.13",
+]
+
+[project.scripts]
+aliyun-inventory-mcp = "aliyun_inventory_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aliyun_inventory_mcp"]
