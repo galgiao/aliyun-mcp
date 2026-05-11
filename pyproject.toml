@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 aliyun-inventory-mcp = "aliyun_inventory_mcp.server:main"
+aliyun-inventory-http = "aliyun_inventory_mcp.http_server:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/aliyun_inventory_mcp"]

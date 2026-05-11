@@ -21,6 +21,62 @@ python3 -m venv .venv
 
 ## 本地启动
 
+### 普通 HTTP 模式
+
+如果暂时不使用 MCP，可以启动普通 HTTP 服务：
+
+```bash
+ALIYUN_HTTP_HOST=0.0.0.0 \
+ALIYUN_HTTP_PORT=8001 \
+ALIBABA_CLOUD_ACCESS_KEY_ID=your-ak \
+ALIBABA_CLOUD_ACCESS_KEY_SECRET=your-sk \
+.venv/bin/aliyun-inventory-http
+```
+
+健康检查：
+
+```bash
+curl -sS http://127.0.0.1:8001/health
+```
+
+获取资源清单，AK/SK 从环境变量读取：
+
+```bash
+curl -sS http://127.0.0.1:8001/inventory \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "include_relationships": true,
+    "max_resources": 100,
+    "max_relationships_per_resource": 50
+  }'
+```
+
+获取资源清单，AK/SK 直接放在请求体：
+
+```bash
+curl -sS http://127.0.0.1:8001/inventory \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "access_key_id": "your-ak",
+    "access_key_secret": "your-sk",
+    "include_relationships": true,
+    "max_resources": 100
+  }'
+```
+
+公网访问时把 `127.0.0.1` 换成服务器公网 IP：
+
+```bash
+curl -sS http://34.228.183.162:8001/inventory \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "include_relationships": false,
+    "max_resources": 20
+  }'
+```
+
+### MCP Streamable HTTP 模式
+
 ```bash
 ALIYUN_MCP_HOST=0.0.0.0 \
 ALIYUN_MCP_PORT=8000 \

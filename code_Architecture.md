@@ -3,10 +3,11 @@
 ## 1) Project Positioning and Runtime Shape
 - Project goal: MCP server that inventories Alibaba Cloud resources and resource relationships with AK/SK credentials.
 - Main stack: Python, FastMCP, Alibaba Cloud Resource Center SDK.
-- Service topology: single MCP server process, default Streamable HTTP transport at `/mcp`.
+- Service topology: MCP server process at `/mcp`, plus optional plain HTTP server exposing `/health` and `/inventory`.
 
 ## 2) Directory Responsibilities
 - `src/aliyun_inventory_mcp/server.py`: MCP server construction, environment-driven runtime config, Aliyun client creation, inventory tool logic.
+- `src/aliyun_inventory_mcp/http_server.py`: plain HTTP Starlette app for curl-friendly inventory calls.
 - `src/aliyun_inventory_mcp/__init__.py`: package marker and module export.
 - `pyproject.toml`: package metadata, dependencies, console script entrypoint.
 - `.env.example`: documented environment variables for credentials and Streamable HTTP runtime.
@@ -14,7 +15,9 @@
 
 ## 3) Runtime Entrypoints
 - Console script: `aliyun-inventory-mcp` from `pyproject.toml`.
+- HTTP console script: `aliyun-inventory-http` from `pyproject.toml`.
 - Python entrypoint: `aliyun_inventory_mcp.server:main`.
+- HTTP Python entrypoint: `aliyun_inventory_mcp.http_server:main`.
 - Default transport: `streamable-http`.
 - Default URL path: `/mcp`.
 - Optional stdio mode: set `ALIYUN_MCP_TRANSPORT=stdio`.
@@ -43,8 +46,16 @@
 - Control code: `src/aliyun_inventory_mcp/server.py` `get_aliyun_inventory()`.
 - Response shape: `summary`, `resources`, `relationships`, `errors`.
 
+### 4.5 Plain HTTP API
+- Function: expose inventory collection for direct HTTP clients and curl.
+- Control code: `src/aliyun_inventory_mcp/http_server.py`.
+- Endpoints: `GET /health`, `POST /inventory`.
+- Handler reuse: `POST /inventory` calls `get_aliyun_inventory()`.
+
 ## 5) Client/API to Server Control Points
 - MCP Streamable HTTP endpoint: `/mcp`.
+- Plain HTTP health endpoint: `/health`.
+- Plain HTTP inventory endpoint: `/inventory`.
 - FastMCP app config: `src/aliyun_inventory_mcp/server.py` module-level `mcp`.
 - Tool handler: `src/aliyun_inventory_mcp/server.py` `get_aliyun_inventory()`.
 
@@ -58,6 +69,10 @@
 - Stateless mode: `ALIYUN_MCP_STATELESS`, default `false`.
 - JSON response mode: `ALIYUN_MCP_JSON_RESPONSE`, default `false`.
 - Log level: `ALIYUN_MCP_LOG_LEVEL`, default `INFO`.
+- HTTP host: `ALIYUN_HTTP_HOST`, default `0.0.0.0`.
+- HTTP port: `ALIYUN_HTTP_PORT`, default `8001`.
+- HTTP debug: `ALIYUN_HTTP_DEBUG`, default disabled.
+- HTTP reload: `ALIYUN_HTTP_RELOAD`, default disabled.
 
 ## 7) Database/Migration Entry
 - Database: none.
@@ -67,6 +82,7 @@
 ## 8) Fast Troubleshooting Index
 - MCP server does not start: check `pyproject.toml` console script and `src/aliyun_inventory_mcp/server.py` `main()`.
 - `/mcp` does not respond: check `ALIYUN_MCP_HOST`, `ALIYUN_MCP_PORT`, `ALIYUN_MCP_PATH`, and nginx proxy path.
+- `/inventory` does not respond: check `ALIYUN_HTTP_HOST`, `ALIYUN_HTTP_PORT`, process logs, and firewall/security group.
 - Missing credentials: check `_client()` and `ALIBABA_CLOUD_ACCESS_KEY_ID` / `ALIBABA_CLOUD_ACCESS_KEY_SECRET`.
 - Empty resource list: check Resource Center permissions, `resource_types`, `regions`, and `resource_group_id`.
 - Relationship errors: check response `errors` and `_list_relationships_for_resource()`.
